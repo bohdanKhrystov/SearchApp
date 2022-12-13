@@ -1,4 +1,4 @@
-package com.bohdanhub.searchapp
+package com.bohdanhub.searchapp.ui.feature.main
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

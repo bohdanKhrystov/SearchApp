@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.bohdanhub.searchapp.MainScreens
+import com.bohdanhub.searchapp.ui.feature.main.MainScreens
 
 @Composable
 fun TopAppBar(navController: NavHostController) {
