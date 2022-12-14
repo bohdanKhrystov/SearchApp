@@ -8,12 +8,14 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.bohdanhub.searchapp.ui.feature.main.MainScreens
+import com.bohdanhub.searchapp.ui.feature.main.MainViewModel
 
 @Composable
-fun TopAppBar(navController: NavHostController) {
+fun TopAppBar(navController: NavHostController, vm: MainViewModel) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     Column {
@@ -33,6 +35,7 @@ fun TopAppBar(navController: NavHostController) {
                 }
             }, actions = {
                 IconButton(onClick = {
+                    vm.test()
                     navController.navigate(MainScreens.Settings.route) {
                         launchSingleTop = true
                         restoreState = true

@@ -10,6 +10,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,7 +19,9 @@ import com.bohdanhub.searchapp.ui.component.topappbar.TopAppBar
 import com.bohdanhub.searchapp.ui.feature.home.HomeScreen
 import com.bohdanhub.searchapp.ui.feature.settings.SettingsScreen
 import com.bohdanhub.searchapp.ui.theme.SearchAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +34,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen() {
+fun MainScreen(vm: MainViewModel = viewModel()) {
     val navController = rememberNavController()
     Scaffold(
-        topBar = { TopAppBar(navController) },
+        topBar = { TopAppBar(navController, vm) },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 MainNavigation(navController = navController)
