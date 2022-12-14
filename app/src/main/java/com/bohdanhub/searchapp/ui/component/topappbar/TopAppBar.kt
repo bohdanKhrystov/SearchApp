@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.bohdanhub.searchapp.ui.feature.main.MainScreens
@@ -35,7 +34,7 @@ fun TopAppBar(navController: NavHostController, vm: MainViewModel) {
                 }
             }, actions = {
                 IconButton(onClick = {
-                    vm.test()
+                    vm.search()
                     navController.navigate(MainScreens.Settings.route) {
                         launchSingleTop = true
                         restoreState = true

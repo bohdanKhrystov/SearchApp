@@ -1,6 +1,10 @@
 package com.bohdanhub.searchapp.data
 
 import android.util.Log
+import com.bohdanhub.searchapp.domain.data.SearchRequest
+import com.bohdanhub.searchapp.domain.data.SearchResult
+import com.bohdanhub.searchapp.util.countEntries
+import com.bohdanhub.searchapp.util.extractUrls
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
@@ -15,6 +19,18 @@ import javax.inject.Singleton
 
 @Singleton
 class SearchRepository @Inject constructor() {
+
+    suspend fun startSearch(request: SearchRequest): SearchResult {
+        return parseText(request.toSearch, fetchUrl(request.url))
+    }
+
+    private suspend fun parseText(toSearch: String, originText: String): SearchResult =
+        withContext(Dispatchers.Default) {
+            SearchResult(
+                foundedTextEntries = originText.countEntries(toSearch),
+                foundedUrls = originText.extractUrls()
+            )
+        }
 
     private suspend fun fetchUrl(url: String): String = withContext(Dispatchers.IO) {
         var urlConnection: HttpURLConnection? = null
@@ -48,9 +64,5 @@ class SearchRepository @Inject constructor() {
             urlConnection?.disconnect()
         }
         return@withContext result
-    }
-
-    fun test() {
-        Log.d("MainViewModel", "test:repo")
     }
 }
