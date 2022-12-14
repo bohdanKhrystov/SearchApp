@@ -10,7 +10,7 @@ import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,7 +34,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen(vm: MainViewModel = viewModel()) {
+fun MainScreen(vm: MainViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     Scaffold(
         topBar = { TopAppBar(navController, vm) },
