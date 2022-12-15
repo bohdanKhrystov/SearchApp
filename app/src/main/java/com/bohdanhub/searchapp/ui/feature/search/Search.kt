@@ -54,7 +54,7 @@ fun SearchRequestBottomSheet(
             verticalArrangement = Arrangement.Bottom,
         ) {
             Button(onClick = {
-                coroutineScope.launch { sheetState.show() }
+                coroutineScope.launch { sheetState.animateTo(ModalBottomSheetValue.Expanded) }
             }) {
                 Text(text = "Start Search")
             }
@@ -106,7 +106,7 @@ fun BottomSheet(
         Button(onClick = {
             vm.search(
                 SearchRequest(
-                    toSearch = searchText.text,
+                    textForSearch = searchText.text,
                     url = urlText.text
                 )
             )

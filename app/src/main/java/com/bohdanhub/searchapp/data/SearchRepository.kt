@@ -21,7 +21,7 @@ import javax.inject.Singleton
 class SearchRepository @Inject constructor() {
 
     suspend fun startSearch(request: SearchRequest): SearchResult {
-        return parseText(request.toSearch, fetchUrl(request.url))
+        return parseText(request.textForSearch, fetchUrl(request.url))
     }
 
     private suspend fun parseText(toSearch: String, originText: String): SearchResult =

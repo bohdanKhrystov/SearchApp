@@ -18,7 +18,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             val r = searchRepository.startSearch(
                 SearchRequest(
-                    toSearch = "a",
+                    textForSearch = "a",
                     url = "https://github.com/meltaran777/TestSearch/blob/master/app/src/main/java/com/bohdan/khristov/textsearch/util/StringExt.kt"
                 )
             )
