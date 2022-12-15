@@ -2,19 +2,27 @@ package com.bohdanhub.searchapp.ui.feature.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.bohdanhub.searchapp.domain.data.SearchRequest
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SearchScreen() {
+fun SearchScreen(vm: SearchViewModel = hiltViewModel()) {
     val sheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
+        confirmStateChange = {
+            it != ModalBottomSheetValue.HalfExpanded
+        }
     )
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
 
@@ -22,7 +30,7 @@ fun SearchScreen() {
         coroutineScope.launch { sheetState.hide() }
     }
 
-    SearchRequestBottomSheet(sheetState, coroutineScope)
+    SearchRequestBottomSheet(sheetState, coroutineScope, vm)
 }
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -30,11 +38,13 @@ fun SearchScreen() {
 fun SearchRequestBottomSheet(
     sheetState: ModalBottomSheetState,
     coroutineScope: CoroutineScope,
+    vm: SearchViewModel,
 ) {
     ModalBottomSheetLayout(
         sheetState = sheetState,
-        sheetContent = { BottomSheet() },
-        modifier = Modifier.fillMaxSize()
+        sheetContent = { BottomSheet(vm, sheetState, coroutineScope) },
+        modifier = Modifier.fillMaxSize(),
+
     ) {
         Column(
             modifier = Modifier
@@ -52,19 +62,59 @@ fun SearchRequestBottomSheet(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun BottomSheet() {
+fun BottomSheet(
+    vm: SearchViewModel,
+    sheetState: ModalBottomSheetState,
+    coroutineScope: CoroutineScope,
+) {
     Column(
-        modifier = Modifier.padding(32.dp).fillMaxSize()
+        modifier = Modifier
+            .padding(32.dp)
+            .fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(
-            text = "Bottom sheet",
-            style = MaterialTheme.typography.h6
+        var urlText by remember { mutableStateOf(TextFieldValue("")) }
+        OutlinedTextField(
+            value = urlText,
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            label = { Text(text = "Root url") },
+            placeholder = { Text(text = "Enter your url") },
+            onValueChange = {
+                urlText = it
+            }
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        var searchText by remember { mutableStateOf(TextFieldValue("")) }
+        OutlinedTextField(
+            value = searchText,
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            label = { Text(text = "Search") },
+            placeholder = { Text(text = "Enter your request") },
+            onValueChange = {
+                searchText = it
+            }
         )
         Spacer(modifier = Modifier.height(32.dp))
-        Text(
-            text = "Click outside the bottom sheet to hide it",
-            style = MaterialTheme.typography.body1
-        )
+        Button(onClick = {
+            vm.search(
+                SearchRequest(
+                    toSearch = searchText.text,
+                    url = urlText.text
+                )
+            )
+            coroutineScope.launch {
+                sheetState.hide()
+            }
+        }) {
+            Text(text = "Start Search")
+        }
     }
 }
