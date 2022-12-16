@@ -64,21 +64,21 @@ class SearchRepository @Inject constructor() {
             processedUrls = listOf(),
             status = SearchStatus.InProgress
         )
-        val r = childSearch(request.textForSearch, ChildSearchRequest(request.url))
+        recursiveSearch(request)
+    }
+
+    private suspend fun recursiveSearch(request: RootSearchRequest) {
+        val childSearchResult = childSearch(request.textForSearch, ChildSearchRequest(request.url))
         mutex.withLock {
-            childSearchResults.value =
-                childSearchResults.value.toMutableList().apply { add(r) }
-        }
-        val foundedUrls = r.parseResult.foundedUrls
-        for (url in foundedUrls) {
-            val childResult = childSearch(
-                textForSearch = request.textForSearch,
-                request = ChildSearchRequest(url)
-            )
-            mutex.withLock {
+            val childSearchResultList = childSearchResults.value
+            if (childSearchResultList.size <= request.maxUrls) {
                 childSearchResults.value =
-                    childSearchResults.value.toMutableList().apply { add(childResult) }
+                    childSearchResultList.toMutableList().apply { add(childSearchResult) }
             }
+        }
+        val foundedUrls = childSearchResult.parseResult.foundedUrls
+        for (url in foundedUrls) {
+            recursiveSearch(request.copy(url = url))
         }
     }
 
