@@ -11,13 +11,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bohdanhub.searchapp.domain.data.SearchRequest
+import com.bohdanhub.searchapp.domain.data.RootSearchRequest
+import com.bohdanhub.searchapp.ui.component.card.SearchCard
+import com.bohdanhub.searchapp.ui.component.card.SearchCardData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SearchScreen(vm: SearchViewModel = hiltViewModel()) {
+    val searchCardState = vm.searchCardData.collectAsState(initial = null)
+    searchCardState.value?.let { searchCardData ->
+        SearchCard(searchCardData)
+    }
+
     val sheetState: ModalBottomSheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
         confirmStateChange = {
@@ -25,11 +32,9 @@ fun SearchScreen(vm: SearchViewModel = hiltViewModel()) {
         }
     )
     val coroutineScope: CoroutineScope = rememberCoroutineScope()
-
     BackHandler(sheetState.isVisible) {
         coroutineScope.launch { sheetState.hide() }
     }
-
     SearchRequestBottomSheet(sheetState, coroutineScope, vm)
 }
 
@@ -45,7 +50,7 @@ fun SearchRequestBottomSheet(
         sheetContent = { BottomSheet(vm, sheetState, coroutineScope) },
         modifier = Modifier.fillMaxSize(),
 
-    ) {
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -105,7 +110,7 @@ fun BottomSheet(
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = {
             vm.search(
-                SearchRequest(
+                RootSearchRequest(
                     textForSearch = searchText.text,
                     url = urlText.text
                 )

@@ -11,15 +11,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bohdanhub.searchapp.domain.data.SearchRequest
+import com.bohdanhub.searchapp.domain.data.RootSearchRequest
 import com.bohdanhub.searchapp.domain.data.SearchStatus
 
 @Composable
-fun SearchCard(data: SearchCardData) {
+fun SearchCard(
+    data: SearchCardData,
+    modifier: Modifier = Modifier
+        .fillMaxWidth()
+        .wrapContentHeight()
+        .padding(20.dp)
+) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
+        modifier = modifier
+
     ) {
         Card(
             elevation = 4.dp,
@@ -104,19 +109,17 @@ fun SearchCard(data: SearchCardData) {
 @Preview(showBackground = true)
 @Composable
 fun SearchCardPreview() {
-    Column(modifier = Modifier.padding(20.dp)) {
-        SearchCard(
-            data = SearchCardData(
-                request = SearchRequest(
-                    textForSearch = "brother",
-                    url = "https://google.com"
-                ),
-                status = SearchStatus.InProgress,
-                latestUrl = "https://latestprocessed.com",
-                processedUrlsCount = 978,
-                totalUrlsCount = 2196,
-                progress = 0.64f
-            )
+    SearchCard(
+        data = SearchCardData(
+            request = RootSearchRequest(
+                textForSearch = "brother",
+                url = "https://google.com"
+            ),
+            status = SearchStatus.InProgress,
+            latestUrl = "https://latestprocessed.com",
+            processedUrlsCount = 978,
+            totalUrlsCount = 2196,
+            progress = 0.64f
         )
-    }
+    )
 }

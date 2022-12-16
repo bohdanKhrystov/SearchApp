@@ -1,6 +1,6 @@
 package com.bohdanhub.searchapp.domain.data
 
-data class SearchResult(
+data class ParseResult(
     val foundedTextEntries: Int,
     val foundedUrls: List<String>,
 )

@@ -1,11 +1,12 @@
 package com.bohdanhub.searchapp.data
 
 import android.util.Log
-import com.bohdanhub.searchapp.domain.data.SearchRequest
-import com.bohdanhub.searchapp.domain.data.SearchResult
+import com.bohdanhub.searchapp.domain.data.*
 import com.bohdanhub.searchapp.util.countEntries
 import com.bohdanhub.searchapp.util.extractUrls
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -20,13 +21,23 @@ import javax.inject.Singleton
 @Singleton
 class SearchRepository @Inject constructor() {
 
-    suspend fun startSearch(request: SearchRequest): SearchResult {
-        return parseText(request.textForSearch, fetchUrl(request.url))
+    private val _rootSearchResult: MutableStateFlow<RootSearchResult?> = MutableStateFlow(null)
+    val rootSearchResult: StateFlow<RootSearchResult?> = _rootSearchResult
+
+    suspend fun startSearch(request: RootSearchRequest) {
+        val parseResult = parseText(request.textForSearch, fetchUrl(request.url))
+        _rootSearchResult.value = RootSearchResult(
+            request = request,
+            totalTextEntries = parseResult.foundedTextEntries,
+            foundedUrls = parseResult.foundedUrls,
+            processedUrls = listOf(request.url),
+            status = SearchStatus.InProgress,
+        )
     }
 
-    private suspend fun parseText(toSearch: String, originText: String): SearchResult =
+    private suspend fun parseText(toSearch: String, originText: String): ParseResult =
         withContext(Dispatchers.Default) {
-            SearchResult(
+            ParseResult(
                 foundedTextEntries = originText.countEntries(toSearch),
                 foundedUrls = originText.extractUrls()
             )
