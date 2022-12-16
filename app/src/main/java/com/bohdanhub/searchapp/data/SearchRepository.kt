@@ -71,7 +71,7 @@ class SearchRepository @Inject constructor() {
         val childSearchResult = childSearch(request.textForSearch, ChildSearchRequest(request.url))
         mutex.withLock {
             val childSearchResultList = childSearchResults.value
-            if (childSearchResultList.size <= request.maxUrls) {
+            if (childSearchResultList.size < request.maxUrls) {
                 childSearchResults.value =
                     childSearchResultList.toMutableList().apply { add(childSearchResult) }
             }
