@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bohdanhub.searchapp.domain.data.RootSearchRequest
 import com.bohdanhub.searchapp.ui.component.card.SearchCard
-import com.bohdanhub.searchapp.ui.component.card.SearchCardData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

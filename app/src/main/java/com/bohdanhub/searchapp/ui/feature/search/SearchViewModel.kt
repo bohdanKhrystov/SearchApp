@@ -1,15 +1,14 @@
 package com.bohdanhub.searchapp.ui.feature.search
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bohdanhub.searchapp.data.SearchRepository
 import com.bohdanhub.searchapp.domain.data.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.RootSearchResult
-import com.bohdanhub.searchapp.ui.component.card.SearchCard
 import com.bohdanhub.searchapp.ui.component.card.SearchCardData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
