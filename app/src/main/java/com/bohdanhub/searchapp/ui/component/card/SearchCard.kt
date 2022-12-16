@@ -28,6 +28,7 @@ fun SearchCard(data: SearchCardData) {
             Column(
                 horizontalAlignment = Alignment.Start,
             ) {
+                Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Request",
                     modifier = Modifier.padding(horizontal = 8.dp),
@@ -56,29 +57,43 @@ fun SearchCard(data: SearchCardData) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Founded/Processed urls: ${data.totalUrlsCount}/${data.processedUrlsCount}",
+                    text = "Latest url: ${data.latestUrl}",
                     modifier = Modifier.padding(horizontal = 8.dp)
                 )
-                if (data.status != SearchStatus.Completed) {
-                    Divider(color = MaterialTheme.colors.onBackground, thickness = 1.dp)
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-                Column(
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Processed/Founded urls: ${data.processedUrlsCount}/${data.totalUrlsCount}",
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                LinearProgressIndicator(
+                    progress = data.progress,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Button(onClick = {
+                        .wrapContentHeight()
+                        .padding(horizontal = 8.dp),
+                )
+                if (data.status != SearchStatus.Completed) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Divider(color = MaterialTheme.colors.onBackground, thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Button(onClick = {
 
-                    }) {
-                        Text(
-                            text = when (data.status) {
-                                is SearchStatus.InProgress -> "Pause"
-                                SearchStatus.Paused -> "Resume"
-                                else -> throw java.lang.IllegalStateException()
-                            }
-                        )
+                        }) {
+                            Text(
+                                text = when (data.status) {
+                                    is SearchStatus.InProgress -> "Pause"
+                                    SearchStatus.Paused -> "Resume"
+                                    else -> throw java.lang.IllegalStateException()
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -96,10 +111,11 @@ fun SearchCardPreview() {
                     textForSearch = "brother",
                     url = "https://google.com"
                 ),
-                status = SearchStatus.InProgress(0.32f),
+                status = SearchStatus.InProgress,
                 latestUrl = "https://latestprocessed.com",
-                processedUrlsCount = 1024,
-                totalUrlsCount = 2048,
+                processedUrlsCount = 978,
+                totalUrlsCount = 2196,
+                progress = 0.64f
             )
         )
     }

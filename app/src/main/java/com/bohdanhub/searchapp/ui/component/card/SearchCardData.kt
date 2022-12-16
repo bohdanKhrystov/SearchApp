@@ -9,4 +9,5 @@ data class SearchCardData(
     val latestUrl: String,
     val processedUrlsCount: Int,
     val totalUrlsCount: Int,
+    val progress: Float
 )

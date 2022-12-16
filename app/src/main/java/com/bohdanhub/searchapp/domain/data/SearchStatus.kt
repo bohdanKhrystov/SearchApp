@@ -13,9 +13,9 @@ sealed class SearchStatus {
         }
     }
 
-    class InProgress(val progress: Float) : SearchStatus() {
+    object InProgress : SearchStatus() {
         override fun toString(): String {
-            return "InProgress $progress"
+            return "InProgress"
         }
     }
 }
