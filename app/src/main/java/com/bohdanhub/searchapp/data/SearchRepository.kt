@@ -1,12 +1,16 @@
 package com.bohdanhub.searchapp.data
 
-import android.util.Log
 import com.bohdanhub.searchapp.domain.data.*
 import com.bohdanhub.searchapp.util.countEntries
 import com.bohdanhub.searchapp.util.extractUrls
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -24,21 +28,77 @@ class SearchRepository @Inject constructor() {
     private val _rootSearchResult: MutableStateFlow<RootSearchResult?> = MutableStateFlow(null)
     val rootSearchResult: StateFlow<RootSearchResult?> = _rootSearchResult
 
+    private val childSearchResults: MutableStateFlow<List<ChildSearchResult>> =
+        MutableStateFlow(listOf())
+    private val mutex = Mutex()
+    private val scope = CoroutineScope(Dispatchers.Default)
+
+    init {
+        childSearchResults
+            .onEach {
+                val currentResult = _rootSearchResult.value
+                if (currentResult != null) {
+                    var totalTextEntries = 0
+                    val processedUrls = mutableListOf<String>()
+                    val totalFoundedUrls = mutableListOf<String>()
+                    for (childRequest in it) {
+                        totalTextEntries += childRequest.parseResult.foundedTextEntries
+                        processedUrls.add(childRequest.request.url)
+                        totalFoundedUrls.addAll(childRequest.parseResult.foundedUrls)
+                    }
+                    _rootSearchResult.value = currentResult.copy(
+                        totalTextEntries = totalTextEntries,
+                        foundedUrls = totalFoundedUrls,
+                        processedUrls = processedUrls,
+                    )
+                }
+            }.launchIn(scope)
+    }
+
     suspend fun startSearch(request: RootSearchRequest) {
-        val parseResult = parseText(request.textForSearch, fetchUrl(request.url))
+        childSearchResults.value = listOf()
         _rootSearchResult.value = RootSearchResult(
             request = request,
-            totalTextEntries = parseResult.foundedTextEntries,
-            foundedUrls = parseResult.foundedUrls,
-            processedUrls = listOf(request.url),
-            status = SearchStatus.InProgress,
+            totalTextEntries = 0,
+            foundedUrls = listOf(),
+            processedUrls = listOf(),
+            status = SearchStatus.InProgress
+        )
+        val r = childSearch(request.textForSearch, ChildSearchRequest(request.url))
+        mutex.withLock {
+            childSearchResults.value =
+                childSearchResults.value.toMutableList().apply { add(r) }
+        }
+        val foundedUrls = r.parseResult.foundedUrls
+        for (url in foundedUrls) {
+            val childResult = childSearch(
+                textForSearch = request.textForSearch,
+                request = ChildSearchRequest(url)
+            )
+            mutex.withLock {
+                childSearchResults.value =
+                    childSearchResults.value.toMutableList().apply { add(childResult) }
+            }
+        }
+    }
+
+    private suspend fun childSearch(
+        textForSearch: String,
+        request: ChildSearchRequest
+    ): ChildSearchResult {
+        return ChildSearchResult(
+            request = request,
+            parseResult = parseText(
+                originText = fetchUrl(request.url),
+                textForSearch = textForSearch
+            )
         )
     }
 
-    private suspend fun parseText(toSearch: String, originText: String): ParseResult =
+    private suspend fun parseText(textForSearch: String, originText: String): ParseResult =
         withContext(Dispatchers.Default) {
             ParseResult(
-                foundedTextEntries = originText.countEntries(toSearch),
+                foundedTextEntries = originText.countEntries(textForSearch),
                 foundedUrls = originText.extractUrls()
             )
         }
@@ -50,7 +110,7 @@ class SearchRepository @Inject constructor() {
             val urlObj = URL(url)
             urlConnection = urlObj.openConnection() as HttpURLConnection
             val code = urlConnection.responseCode
-            Log.d("SearchRepository", "Code = $code")
+            //Log.d("SearchRepository", "Code = $code")
             if (code == 200) {
                 val stream = BufferedInputStream(urlConnection.inputStream)
                 val bufferedReader = BufferedReader(InputStreamReader(stream))
@@ -59,7 +119,7 @@ class SearchRepository @Inject constructor() {
                         line = bufferedReader.readLine()
                         line
                     } != null) {
-                    Log.d("SearchRepository", "line = $line")
+                    //Log.d("SearchRepository", "line = $line")
                     result += line
                 }
                 stream.close()

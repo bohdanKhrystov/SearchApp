@@ -6,5 +6,8 @@ data class RootSearchResult(
     val foundedUrls: List<String>,
     val processedUrls: List<String>,
     val status: SearchStatus,
-    val progress: Float = foundedUrls.size.toFloat() / processedUrls.size.toFloat()
-)
+) {
+    fun getProgress(): Float = if (foundedUrls.isNotEmpty() && processedUrls.isNotEmpty())
+        processedUrls.size.toFloat() / foundedUrls.size.toFloat()
+    else 0f
+}
