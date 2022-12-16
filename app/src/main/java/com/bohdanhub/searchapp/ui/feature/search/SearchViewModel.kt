@@ -27,7 +27,8 @@ class SearchViewModel @Inject constructor(
                 processedUrlsCount = searchResult.processedUrls.size,
                 latestUrl = searchResult.processedUrls.lastOrNull() ?: "",
                 progress = searchResult.getProgress(),
-                status = searchResult.status
+                status = searchResult.status,
+                textEntriesCount = searchResult.totalTextEntries
             )
         }
 

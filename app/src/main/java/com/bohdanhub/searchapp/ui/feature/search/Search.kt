@@ -61,7 +61,7 @@ fun SearchRequestBottomSheet(
             Button(onClick = {
                 coroutineScope.launch { sheetState.animateTo(ModalBottomSheetValue.Expanded) }
             }) {
-                Text(text = "Start Search")
+                Text(text = "New Search")
             }
         }
     }

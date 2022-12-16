@@ -41,7 +41,7 @@ fun SearchCard(
                     style = TextStyle(fontSize = 16.sp, fontWeight = FontWeight.W700)
                 )
                 Text(
-                    text = "Root Url: ${data.request.url}",
+                    text = "Root url: ${data.request.url}",
                     modifier = Modifier.padding(horizontal = 8.dp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -61,6 +61,11 @@ fun SearchCard(
                 )
                 Text(
                     text = "Status: ${data.status}",
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Text entries: ${data.textEntriesCount}",
                     modifier = Modifier.padding(horizontal = 8.dp),
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -124,7 +129,8 @@ fun SearchCardPreview() {
             latestUrl = "https://latestprocessed.com",
             processedUrlsCount = 978,
             totalUrlsCount = 2196,
-            progress = 0.64f
+            progress = 0.64f,
+            textEntriesCount = 186,
         )
     )
 }
