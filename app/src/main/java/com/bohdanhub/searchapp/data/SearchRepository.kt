@@ -3,15 +3,13 @@ package com.bohdanhub.searchapp.data
 import com.bohdanhub.searchapp.domain.data.*
 import com.bohdanhub.searchapp.util.countEntries
 import com.bohdanhub.searchapp.util.extractUrls
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedReader
 import java.io.IOException
@@ -19,21 +17,48 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.MalformedURLException
 import java.net.URL
+import java.util.*
+import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SearchRepository @Inject constructor() {
 
+    private val mutex = Mutex()
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val singleThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
+
     private val _rootSearchResult: MutableStateFlow<RootSearchResult?> = MutableStateFlow(null)
     val rootSearchResult: StateFlow<RootSearchResult?> = _rootSearchResult
 
+    private val searchJobs = mutableListOf<Job>()
+    private val childSearchRequests: PriorityQueue<ChildSearchRequest> = PriorityQueue()
     private val childSearchResults: MutableStateFlow<List<ChildSearchResult>> =
         MutableStateFlow(listOf())
-    private val mutex = Mutex()
-    private val scope = CoroutineScope(Dispatchers.Default)
+
+    private var rootSearchRequest: RootSearchRequest? = null
 
     init {
+        scope.launch {
+            while (true) {
+                withContext(singleThreadDispatcher) {
+                    searchJobs.removeAll { job ->
+                        job.status() == "Cancelled" || job.status() == "Completed"
+                    }
+                    val canAddJob = searchJobs.size < MAX_SEARCH_JOBS_COUNT
+                    if (canAddJob) {
+                        val request = childSearchRequests.poll()
+                        if (request != null) {
+                            searchJobs.add(launch {
+                                singleSearch(rootSearchRequest!!.textForSearch, request)
+                            })
+                        }
+                    }
+                }
+                delay(100)
+            }
+        }
         childSearchResults
             .onEach {
                 val currentResult = _rootSearchResult.value
@@ -56,6 +81,7 @@ class SearchRepository @Inject constructor() {
     }
 
     suspend fun startSearch(request: RootSearchRequest) {
+        this.rootSearchRequest = request
         childSearchResults.value = listOf()
         _rootSearchResult.value = RootSearchResult(
             request = request,
@@ -64,21 +90,31 @@ class SearchRepository @Inject constructor() {
             processedUrls = listOf(),
             status = SearchStatus.InProgress
         )
-        recursiveSearch(request)
+        mutex.withLock {
+            childSearchRequests.add(ChildSearchRequest(request.url, 0, 0, 0))
+        }
     }
 
-    private suspend fun recursiveSearch(request: RootSearchRequest) {
-        val childSearchResult = childSearch(request.textForSearch, ChildSearchRequest(request.url))
+    private suspend fun singleSearch(textForSearch: String, request: ChildSearchRequest) {
+        val childSearchResult = childSearch(textForSearch, request)
         mutex.withLock {
             val childSearchResultList = childSearchResults.value
-            if (childSearchResultList.size < request.maxUrls) {
-                childSearchResults.value =
-                    childSearchResultList.toMutableList().apply { add(childSearchResult) }
-            }
+            childSearchResults.value =
+                childSearchResultList.toMutableList().apply { add(childSearchResult) }
         }
         val foundedUrls = childSearchResult.parseResult.foundedUrls
-        for (url in foundedUrls) {
-            recursiveSearch(request.copy(url = url))
+        val nextDeep = request.deep + 1
+        for ((index, foundedUrl) in foundedUrls.withIndex()) {
+            mutex.withLock {
+                childSearchRequests.add(
+                    ChildSearchRequest(
+                        url = foundedUrl,
+                        id = index.toLong(),
+                        deep = nextDeep,
+                        parentId = request.id
+                    )
+                )
+            }
         }
     }
 
@@ -135,5 +171,17 @@ class SearchRepository @Inject constructor() {
             urlConnection?.disconnect()
         }
         return@withContext result
+    }
+
+    fun Job.status(): String = when {
+        isActive -> "Active/Completing"
+        isCompleted && isCancelled -> "Cancelled"
+        isCancelled -> "Cancelling"
+        isCompleted -> "Completed"
+        else -> "New"
+    }
+
+    companion object {
+        private const val MAX_SEARCH_JOBS_COUNT: Int = 10
     }
 }
