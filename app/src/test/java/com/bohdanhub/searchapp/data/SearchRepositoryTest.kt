@@ -11,7 +11,12 @@ import org.junit.Test
 internal class SearchRepositoryTest {
 
     @Test
-    fun testIfSearchTraversalIsInWidth() {
+    fun testSearchTraversalIsInWidth() {
+        assert(true)
+    }
+
+    @Test
+    fun testSearchTraversalIsInWidthIfDelays() {
         assert(true)
     }
 
