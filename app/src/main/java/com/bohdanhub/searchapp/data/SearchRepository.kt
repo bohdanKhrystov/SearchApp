@@ -36,6 +36,8 @@ class SearchRepository @Inject constructor(
 
     private var rootSearchRequest: RootSearchRequest? = null
 
+    private var startId = 0L
+
     init {
         scope.launch {
             while (true) {
@@ -90,6 +92,7 @@ class SearchRepository @Inject constructor(
 
     suspend fun startSearch(request: RootSearchRequest) {
         this.rootSearchRequest = request
+        startId = 0
         childSearchResults.value = listOf()
         _rootSearchResult.value = RootSearchResult(
             request = request,
@@ -102,8 +105,8 @@ class SearchRepository @Inject constructor(
             childSearchRequests.add(
                 ChildSearchRequest(
                     url = request.url,
-                    parentId = 0,
-                    id = 0,
+                    parentId = -1,
+                    id = startId,
                     deep = 0,
                 )
             )
@@ -128,12 +131,12 @@ class SearchRepository @Inject constructor(
         if (parseResult is Result.Success) {
             val foundedUrls = parseResult.result.foundedUrls
             val nextDeep = request.deep + 1
-            for ((index, foundedUrl) in foundedUrls.withIndex()) {
+            for (foundedUrl in foundedUrls) {
                 mutex.withLock {
                     childSearchRequests.add(
                         ChildSearchRequest(
                             url = foundedUrl,
-                            id = index.toLong(),
+                            id = generateId(),
                             deep = nextDeep,
                             parentId = request.id
                         )
@@ -156,6 +159,11 @@ class SearchRepository @Inject constructor(
                 )
             )
         )
+    }
+
+    private fun generateId(): Long {
+        startId += 1
+        return startId
     }
 
     companion object {

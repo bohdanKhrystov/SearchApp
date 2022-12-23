@@ -4,17 +4,17 @@ import com.bohdanhub.searchapp.domain.UrlFetcher
 
 val testUrl = "https://to_replace.com"
 
-fun provideMockFetcher(): UrlFetcher {
+fun provideMockFetcher(maxChild: Int = 10, childCount: Int = 3): UrlFetcher {
     return object : UrlFetcher {
         var maxIndex = 0
         override suspend fun fetch(url: String): String {
             val result = StringBuilder()
             result.append("{\n")
-            if (maxIndex < 10) {
-                for (i in maxIndex + 1..maxIndex + 3) {
+            if (maxIndex < maxChild) {
+                for (i in maxIndex + 1..maxIndex + childCount) {
                     if (i > maxIndex) maxIndex = i
                     result.append(testUrl.replace("to_replace", "$i"))
-                    result.append(",\n")
+                    result.append("\n")
                 }
             }
             result.append("\n}")
@@ -39,7 +39,7 @@ fun provideMockFetcherThatThrowErrorSomeTimes(): UrlFetcher {
                 for (i in maxIndex + 1..maxIndex + 3) {
                     if (i > maxIndex) maxIndex = i
                     result.append(testUrl.replace("to_replace", "$i"))
-                    result.append(",\n")
+                    result.append("\n")
                 }
             }
             result.append("\n}")
