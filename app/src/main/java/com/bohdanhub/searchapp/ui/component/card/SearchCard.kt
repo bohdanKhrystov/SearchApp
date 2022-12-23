@@ -13,7 +13,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bohdanhub.searchapp.domain.data.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.SearchStatus
+import com.bohdanhub.searchapp.domain.data.RootSearchStatus
 
 @Composable
 fun SearchCard(
@@ -88,7 +88,7 @@ fun SearchCard(
                         .wrapContentHeight()
                         .padding(horizontal = 8.dp),
                 )
-                if (data.status != SearchStatus.Completed) {
+                if (data.status != RootSearchStatus.Completed) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Divider(color = MaterialTheme.colors.onBackground, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -103,8 +103,8 @@ fun SearchCard(
                         }) {
                             Text(
                                 text = when (data.status) {
-                                    is SearchStatus.InProgress -> "Pause"
-                                    SearchStatus.Paused -> "Resume"
+                                    is RootSearchStatus.InProgress -> "Pause"
+                                    RootSearchStatus.Paused -> "Resume"
                                     else -> throw java.lang.IllegalStateException()
                                 }
                             )
@@ -125,7 +125,7 @@ fun SearchCardPreview() {
                 textForSearch = "brother",
                 url = "https://google.com"
             ),
-            status = SearchStatus.InProgress,
+            status = RootSearchStatus.InProgress,
             latestUrl = "https://latestprocessed.com",
             processedUrlsCount = 978,
             totalUrlsCount = 2196,

@@ -1,6 +1,7 @@
 package com.bohdanhub.searchapp.data
 
 import com.bohdanhub.searchapp.domain.data.*
+import com.bohdanhub.searchapp.domain.data.Result
 import com.bohdanhub.searchapp.util.countEntries
 import com.bohdanhub.searchapp.util.extractUrls
 import kotlinx.coroutines.*
@@ -66,15 +67,23 @@ class SearchRepository @Inject constructor() {
                     var totalTextEntries = 0
                     val processedUrls = mutableListOf<String>()
                     val totalFoundedUrls = mutableListOf<String>()
-                    for (childRequest in it) {
-                        totalTextEntries += childRequest.parseResult.foundedTextEntries
-                        processedUrls.add(childRequest.request.url)
-                        totalFoundedUrls.addAll(childRequest.parseResult.foundedUrls)
+                    for (childResult in it) {
+                        processedUrls.add(childResult.request.url)
+                        if (childResult.parseResult is Result.Success) {
+                            totalTextEntries += childResult.parseResult.result.foundedTextEntries
+                            totalFoundedUrls.addAll(childResult.parseResult.result.foundedUrls)
+                        }
                     }
+                    val status =
+                        if (processedUrls.containsAll(totalFoundedUrls))
+                            RootSearchStatus.Completed
+                        else
+                            RootSearchStatus.InProgress
                     _rootSearchResult.value = currentResult.copy(
                         totalTextEntries = totalTextEntries,
                         foundedUrls = totalFoundedUrls,
                         processedUrls = processedUrls,
+                        status = status
                     )
                 }
             }.launchIn(scope)
@@ -88,32 +97,49 @@ class SearchRepository @Inject constructor() {
             totalTextEntries = 0,
             foundedUrls = listOf(),
             processedUrls = listOf(),
-            status = SearchStatus.InProgress
+            status = RootSearchStatus.InProgress
         )
         mutex.withLock {
-            childSearchRequests.add(ChildSearchRequest(request.url, 0, 0, 0))
+            childSearchRequests.add(
+                ChildSearchRequest(
+                    url = request.url,
+                    parentId = 0,
+                    id = 0,
+                    deep = 0,
+                )
+            )
         }
     }
 
     private suspend fun singleSearch(textForSearch: String, request: ChildSearchRequest) {
-        val childSearchResult = childSearch(textForSearch, request)
+        val childSearchResult = try {
+            childSearch(textForSearch, request)
+        } catch (e: Exception) {
+            ChildSearchResult(
+                request = request,
+                parseResult = Result.Failed(e)
+            )
+        }
         mutex.withLock {
             val childSearchResultList = childSearchResults.value
             childSearchResults.value =
                 childSearchResultList.toMutableList().apply { add(childSearchResult) }
         }
-        val foundedUrls = childSearchResult.parseResult.foundedUrls
-        val nextDeep = request.deep + 1
-        for ((index, foundedUrl) in foundedUrls.withIndex()) {
-            mutex.withLock {
-                childSearchRequests.add(
-                    ChildSearchRequest(
-                        url = foundedUrl,
-                        id = index.toLong(),
-                        deep = nextDeep,
-                        parentId = request.id
+        val parseResult = childSearchResult.parseResult
+        if (parseResult is Result.Success) {
+            val foundedUrls = parseResult.result.foundedUrls
+            val nextDeep = request.deep + 1
+            for ((index, foundedUrl) in foundedUrls.withIndex()) {
+                mutex.withLock {
+                    childSearchRequests.add(
+                        ChildSearchRequest(
+                            url = foundedUrl,
+                            id = index.toLong(),
+                            deep = nextDeep,
+                            parentId = request.id
+                        )
                     )
-                )
+                }
             }
         }
     }
@@ -124,9 +150,11 @@ class SearchRepository @Inject constructor() {
     ): ChildSearchResult {
         return ChildSearchResult(
             request = request,
-            parseResult = parseText(
-                originText = fetchUrl(request.url),
-                textForSearch = textForSearch
+            parseResult = Result.Success(
+                parseText(
+                    originText = fetchUrl(request.url),
+                    textForSearch = textForSearch
+                )
             )
         )
     }

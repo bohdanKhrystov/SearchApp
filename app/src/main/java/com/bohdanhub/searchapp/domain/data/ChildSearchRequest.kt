@@ -7,7 +7,7 @@ data class ChildSearchRequest(
     val deep: Int,
 ) : Comparable<ChildSearchRequest> {
 
-    private val uuid = "${deep}_${parentId}_${id}"
+    val uuid = "${deep}_${parentId}_${id}"
 
     override fun compareTo(other: ChildSearchRequest): Int {
         return uuid.compareTo(other.uuid)
