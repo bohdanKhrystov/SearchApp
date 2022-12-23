@@ -1,9 +1,9 @@
 package com.bohdanhub.searchapp.data
 
+import com.bohdanhub.searchapp.domain.Parser
+import com.bohdanhub.searchapp.domain.UrlFetcher
 import com.bohdanhub.searchapp.domain.data.*
-import com.bohdanhub.searchapp.domain.data.Result
-import com.bohdanhub.searchapp.util.countEntries
-import com.bohdanhub.searchapp.util.extractUrls
+import com.bohdanhub.searchapp.util.status
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,20 +11,16 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import java.io.BufferedInputStream
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.MalformedURLException
-import java.net.URL
 import java.util.*
 import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SearchRepository @Inject constructor() {
+class SearchRepository @Inject constructor(
+    private val parser: Parser,
+    private val fetcher: UrlFetcher
+) {
 
     private val mutex = Mutex()
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -151,62 +147,12 @@ class SearchRepository @Inject constructor() {
         return ChildSearchResult(
             request = request,
             parseResult = Result.Success(
-                parseText(
-                    originText = fetchUrl(request.url),
+                parser.parse(
+                    originText = fetcher.fetch(request.url),
                     textForSearch = textForSearch
                 )
             )
         )
-    }
-
-    private suspend fun parseText(textForSearch: String, originText: String): ParseResult =
-        withContext(Dispatchers.Default) {
-            ParseResult(
-                foundedTextEntries = originText.countEntries(textForSearch),
-                foundedUrls = originText.extractUrls()
-            )
-        }
-
-    private suspend fun fetchUrl(url: String): String = withContext(Dispatchers.IO) {
-        var urlConnection: HttpURLConnection? = null
-        var result = ""
-        try {
-            val urlObj = URL(url)
-            urlConnection = urlObj.openConnection() as HttpURLConnection
-            val code = urlConnection.responseCode
-            //Log.d("SearchRepository", "Code = $code")
-            if (code == 200) {
-                val stream = BufferedInputStream(urlConnection.inputStream)
-                val bufferedReader = BufferedReader(InputStreamReader(stream))
-                var line: String?
-                while (run {
-                        line = bufferedReader.readLine()
-                        line
-                    } != null) {
-                    //Log.d("SearchRepository", "line = $line")
-                    result += line
-                }
-                stream.close()
-            }
-            return@withContext result
-        } catch (e: MalformedURLException) {
-            e.printStackTrace()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            urlConnection?.disconnect()
-        }
-        return@withContext result
-    }
-
-    fun Job.status(): String = when {
-        isActive -> "Active/Completing"
-        isCompleted && isCancelled -> "Cancelled"
-        isCancelled -> "Cancelling"
-        isCompleted -> "Completed"
-        else -> "New"
     }
 
     companion object {
