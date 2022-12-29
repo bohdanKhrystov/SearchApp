@@ -49,7 +49,7 @@ class SearchRepository @Inject constructor(
                     if (canAddJob) {
                         val request = childSearchRequests.poll()
                         if (request != null) {
-                            searchJobs.add(launch {
+                            searchJobs.add(scope.launch(Dispatchers.Default) {
                                 singleSearch(rootSearchRequest!!.textForSearch, request)
                             })
                         }

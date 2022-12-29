@@ -1,10 +1,12 @@
 package com.bohdanhub.searchapp.data
 
 import com.bohdanhub.searchapp.di.provideMockFetcher
+import com.bohdanhub.searchapp.di.provideMockFetcherThatFetchWithDelays
 import com.bohdanhub.searchapp.di.provideMockFetcherThatThrowErrorSomeTimes
 import com.bohdanhub.searchapp.di.rootTestUrl
 import com.bohdanhub.searchapp.domain.data.RootSearchRequest
 import com.bohdanhub.searchapp.domain.data.RootSearchStatus
+import com.bohdanhub.searchapp.util.deepEqualTo
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -28,13 +30,34 @@ internal class SearchRepositoryTest {
                     assert(false) { "Test timeout" }
                 }
             }
-            assert(repository.rootSearchResult.value!!.foundedUrls == expectedFoundedUrls)
+            assert(repository.rootSearchResult.value!!.foundedUrls.deepEqualTo(expectedFoundedUrls)) {
+                "Search is not in width"
+            }
         }
     }
 
     @Test
     fun testSearchTraversalIsInWidthIfDelays() {
-
+        val fetcher = provideMockFetcherThatFetchWithDelays()
+        val parser = ParserImpl()
+        val repository = SearchRepository(parser, fetcher)
+        runBlocking {
+            repository.startSearch(
+                RootSearchRequest(
+                    textForSearch = "1",
+                    url = rootTestUrl,
+                )
+            )
+            val timeStart = System.currentTimeMillis()
+            while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
+                if (System.currentTimeMillis() - timeStart > 100_000) {
+                    assert(false) { "Test timeout" }
+                }
+            }
+            assert(repository.rootSearchResult.value!!.foundedUrls.deepEqualTo(expectedFoundedUrls)) {
+                "Search is not in width"
+            }
+        }
     }
 
     @Test
