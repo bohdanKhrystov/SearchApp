@@ -2,7 +2,7 @@ package com.bohdanhub.searchapp.data
 
 import com.bohdanhub.searchapp.di.provideMockFetcher
 import com.bohdanhub.searchapp.di.provideMockFetcherThatThrowErrorSomeTimes
-import com.bohdanhub.searchapp.di.testUrl
+import com.bohdanhub.searchapp.di.rootTestUrl
 import com.bohdanhub.searchapp.domain.data.RootSearchRequest
 import com.bohdanhub.searchapp.domain.data.RootSearchStatus
 import kotlinx.coroutines.runBlocking
@@ -12,14 +12,14 @@ internal class SearchRepositoryTest {
 
     @Test
     fun testSearchTraversalIsInWidth() {
-        val fetcher = provideMockFetcher(maxChild = 100, childCount = 7)
+        val fetcher = provideMockFetcher()
         val parser = ParserImpl()
         val repository = SearchRepository(parser, fetcher)
         runBlocking {
             repository.startSearch(
                 RootSearchRequest(
                     textForSearch = "1",
-                    url = testUrl,
+                    url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
@@ -34,7 +34,7 @@ internal class SearchRepositoryTest {
 
     @Test
     fun testSearchTraversalIsInWidthIfDelays() {
-        //assert(true)
+
     }
 
     @Test
@@ -46,17 +46,16 @@ internal class SearchRepositoryTest {
             repository.startSearch(
                 RootSearchRequest(
                     textForSearch = "1",
-                    url = testUrl,
+                    url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
             while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
-                if (System.currentTimeMillis() - timeStart > 3_000) {
+                if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
             }
         }
-        assert(true)
     }
 
     @Test
@@ -68,17 +67,16 @@ internal class SearchRepositoryTest {
             repository.startSearch(
                 RootSearchRequest(
                     textForSearch = "1",
-                    url = testUrl,
+                    url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
             while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
-                if (System.currentTimeMillis() - timeStart > 3_000) {
+                if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
             }
         }
-        assert(true)
     }
 }
 
@@ -159,34 +157,4 @@ val expectedFoundedUrls =
         "https://73.com",
         "https://74.com",
         "https://75.com",
-        "https://76.com",
-        "https://77.com",
-        "https://78.com",
-        "https://79.com",
-        "https://80.com",
-        "https://81.com",
-        "https://82.com",
-        "https://83.com",
-        "https://84.com",
-        "https://85.com",
-        "https://86.com",
-        "https://87.com",
-        "https://88.com",
-        "https://89.com",
-        "https://90.com",
-        "https://91.com",
-        "https://92.com",
-        "https://93.com",
-        "https://94.com",
-        "https://95.com",
-        "https://96.com",
-        "https://97.com",
-        "https://98.com",
-        "https://99.com",
-        "https://100.com",
-        "https://101.com",
-        "https://102.com",
-        "https://103.com",
-        "https://104.com",
-        "https://105.com"
     )
