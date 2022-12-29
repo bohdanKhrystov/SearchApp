@@ -1,6 +1,7 @@
 package com.bohdanhub.searchapp.di
 
 import com.bohdanhub.searchapp.domain.UrlFetcher
+import kotlinx.coroutines.delay
 
 val testUrl = "https://to_replace.com"
 
@@ -8,6 +9,7 @@ fun provideMockFetcher(maxChild: Int = 10, childCount: Int = 3): UrlFetcher {
     return object : UrlFetcher {
         var maxIndex = 0
         override suspend fun fetch(url: String): String {
+            delay(10)
             val result = StringBuilder()
             result.append("{\n")
             if (maxIndex < maxChild) {

@@ -65,16 +65,13 @@ class SearchRepository @Inject constructor(
                     var totalTextEntries = 0
                     val processedUrls = mutableListOf<String>()
                     val totalFoundedUrls = mutableListOf<String>()
-                    println("////////////")
                     for (childResult in it) {
-                        println(childResult)
                         processedUrls.add(childResult.request.url)
                         if (childResult.parseResult is Result.Success) {
                             totalTextEntries += childResult.parseResult.result.foundedTextEntries
                             totalFoundedUrls.addAll(childResult.parseResult.result.foundedUrls)
                         }
                     }
-                    println("////////////")
                     val status =
                         if (processedUrls.containsAll(totalFoundedUrls))
                             RootSearchStatus.Completed
