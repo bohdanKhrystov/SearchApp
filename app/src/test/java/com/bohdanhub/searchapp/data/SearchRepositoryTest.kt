@@ -28,18 +28,13 @@ internal class SearchRepositoryTest {
                     assert(false) { "Test timeout" }
                 }
             }
-            val searchResult = repository.rootSearchResult.value
-            if (searchResult != null) {
-                assert(searchResult.foundedUrls == expectedFoundedUrls)
-                return@runBlocking
-            }
-            assert(false) { "Search failed" }
+            assert(repository.rootSearchResult.value!!.foundedUrls == expectedFoundedUrls)
         }
     }
 
     @Test
     fun testSearchTraversalIsInWidthIfDelays() {
-        assert(true)
+        //assert(true)
     }
 
     @Test
