@@ -47,7 +47,7 @@ class SearchRepository @Inject constructor(
                     }
                     val canAddJob = searchJobs.size < MAX_SEARCH_JOBS_COUNT
                     if (canAddJob) {
-                        val request = childSearchRequests.poll()
+                        val request = mutex.withLock { childSearchRequests.poll() }
                         if (request != null) {
                             searchJobs.add(scope.launch(Dispatchers.Default) {
                                 singleSearch(rootSearchRequest!!.textForSearch, request)
@@ -164,6 +164,6 @@ class SearchRepository @Inject constructor(
     }
 
     companion object {
-        private const val MAX_SEARCH_JOBS_COUNT: Int = 10
+        private const val MAX_SEARCH_JOBS_COUNT: Int = 7
     }
 }

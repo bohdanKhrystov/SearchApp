@@ -9,6 +9,7 @@ import com.bohdanhub.searchapp.domain.data.RootSearchStatus
 import com.bohdanhub.searchapp.util.deepEqualTo
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
+import java.net.URL
 
 internal class SearchRepositoryTest {
 
@@ -30,11 +31,13 @@ internal class SearchRepositoryTest {
                     assert(false) { "Test timeout" }
                 }
             }
-            assert(repository.rootSearchResult.value!!.foundedUrls.deepEqualTo(expectedFoundedUrls)) {
-                "Search is not in width"
+            val foundedUrls = repository.rootSearchResult.value!!.foundedUrls
+            assert(foundedUrls.deepEqualTo(expectedFoundedUrls)) {
+                "Search is not in width, founded urls:\n$foundedUrls\n do not match expected:\n$expectedFoundedUrls\n"
             }
         }
     }
+
 
     @Test
     fun testSearchTraversalIsInWidthIfDelays() {
@@ -54,8 +57,34 @@ internal class SearchRepositoryTest {
                     assert(false) { "Test timeout" }
                 }
             }
-            assert(repository.rootSearchResult.value!!.foundedUrls.deepEqualTo(expectedFoundedUrls)) {
-                "Search is not in width"
+            val foundedUrls = repository.rootSearchResult.value!!.foundedUrls
+            val indexes = foundedUrls.map {
+                URL(it).host.split(".").first().toInt()
+            }
+            var i67 = -1
+            var i68 = -1
+            var i69 = -1
+            var i70 = -1
+            var i71 = -1
+            var i72 = -1
+            var i73 = -1
+            for ((index, value) in indexes.withIndex()) {
+                if (value == 67) i67 = index
+                if (value == 68) i68 = index
+                if (value == 69) i69 = index
+                if (value == 70) i70 = index
+                if (value == 71) i71 = index
+                if (value == 72) i72 = index
+                if (value == 73) i73 = index
+            }
+            assert(i67 < i68 && i67 < i69 && i67 < i70 && i67 < i71 && i67 < i72 && i67 < i73) {
+                "Search is not in width:\ni67 = $i67\n" +
+                        "i68 = $i68\n" +
+                        "i69 = $i69\n" +
+                        "i70 = $i70\n" +
+                        "i71 = $i71\n" +
+                        "i72 = $i72\n" +
+                        "i73 = $i73\n"
             }
         }
     }
