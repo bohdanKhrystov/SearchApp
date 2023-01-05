@@ -42,8 +42,6 @@ class SearchRepository @Inject constructor(
         scope.launch {
             while (true) {
                 withContext(singleThreadDispatcher) {
-                    println("//////////")
-                    println(childSearchRequests)
                     searchJobs.removeAll { job ->
                         job.status() == "Cancelled" || job.status() == "Completed"
                     }
