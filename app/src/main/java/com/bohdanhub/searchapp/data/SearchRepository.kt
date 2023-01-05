@@ -42,6 +42,8 @@ class SearchRepository @Inject constructor(
         scope.launch {
             while (true) {
                 withContext(singleThreadDispatcher) {
+                    println("//////////")
+                    println(childSearchRequests)
                     searchJobs.removeAll { job ->
                         job.status() == "Cancelled" || job.status() == "Completed"
                     }
@@ -105,6 +107,7 @@ class SearchRepository @Inject constructor(
                     parentId = -1,
                     id = startId,
                     deep = 0,
+                    priority = listOf(0)
                 )
             )
         }
@@ -135,7 +138,12 @@ class SearchRepository @Inject constructor(
                             url = foundedUrl,
                             id = generateId(),
                             deep = nextDeep,
-                            parentId = request.id
+                            parentId = request.id,
+                            priority = ChildSearchRequest.calculatePriority(
+                                url = foundedUrl,
+                                parentId = request.id,
+                                results = childSearchResults.value
+                            )
                         )
                     )
                 }
