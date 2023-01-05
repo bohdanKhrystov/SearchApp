@@ -17,7 +17,7 @@ class SearchViewModel @Inject constructor(
     private val searchRepository: SearchRepository,
 ) : ViewModel() {
 
-    val searchCardData: Flow<SearchCardData?> = searchRepository.rootSearchResult
+    val searchCardData: Flow<SearchCardData?> = searchRepository.rootResult
         .filterNotNull()
         .map { searchResult ->
             SearchCardData(
@@ -27,7 +27,7 @@ class SearchViewModel @Inject constructor(
                 latestUrl = searchResult.processedUrls.lastOrNull() ?: "",
                 progress = searchResult.getProgress(),
                 status = searchResult.status,
-                textEntriesCount = searchResult.totalTextEntries
+                textEntriesCount = searchResult.textEntries
             )
         }
 

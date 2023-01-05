@@ -26,12 +26,12 @@ internal class SearchRepositoryTest {
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
             }
-            val foundedUrls = repository.rootSearchResult.value!!.foundedUrls
+            val foundedUrls = repository.rootResult.value!!.foundedUrls
             assert(foundedUrls.deepEqualTo(expectedFoundedUrls)) {
                 "Search is not in width, founded urls:\n$foundedUrls\n do not match expected:\n$expectedFoundedUrls\n"
             }
@@ -52,12 +52,12 @@ internal class SearchRepositoryTest {
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
             }
-            val foundedUrls = repository.rootSearchResult.value!!.foundedUrls
+            val foundedUrls = repository.rootResult.value!!.foundedUrls
             val indexes = foundedUrls.map {
                 URL(it).host.split(".").first().toInt()
             }
@@ -102,7 +102,7 @@ internal class SearchRepositoryTest {
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
@@ -123,7 +123,7 @@ internal class SearchRepositoryTest {
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootSearchResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
