@@ -20,22 +20,21 @@ data class ChildSearchRequest(
 
     companion object {
         fun calculatePriority(
-            url: String,
+            id: Long,
             parentId: Long,
             results: List<ChildSearchResult>
         ): List<Int> {
             val priority = mutableListOf<Int>()
             var parentId: Long? = parentId
-            var url: String? = url
+            var id: Long? = id
             while (parentId != null) {
                 val parent = results.find { it.request.id == parentId }
-                val i =
-                    (parent?.parseResult as? Result.Success)?.result?.foundedUrls?.indexOf(url)
+                val i = parent?.childIds?.indexOf(id)
                 if (i != null && i >= 0) {
                     priority.add(i)
                 }
                 parentId = parent?.request?.parentId
-                url = parent?.request?.url
+                id = parent?.request?.id
             }
             priority.add(0)
             return priority.reversed()

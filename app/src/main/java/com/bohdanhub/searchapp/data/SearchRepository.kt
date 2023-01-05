@@ -117,7 +117,8 @@ class SearchRepository @Inject constructor(
         } catch (e: Exception) {
             ChildSearchResult(
                 request = request,
-                parseResult = Result.Failed(e)
+                parseResult = Result.Failed(e),
+                childIds = listOf()
             )
         }
         mutex.withLock {
@@ -129,16 +130,17 @@ class SearchRepository @Inject constructor(
         if (parseResult is Result.Success) {
             val foundedUrls = parseResult.result.foundedUrls
             val nextDeep = request.deep + 1
-            for (foundedUrl in foundedUrls) {
+            for ((index, url) in foundedUrls.withIndex()) {
                 mutex.withLock {
+                    val id = childSearchResult.childIds[index]
                     childSearchRequests.add(
                         ChildSearchRequest(
-                            url = foundedUrl,
-                            id = generateId(),
+                            url = url,
+                            id = id,
                             deep = nextDeep,
                             parentId = request.id,
                             priority = ChildSearchRequest.calculatePriority(
-                                url = foundedUrl,
+                                id = id,
                                 parentId = request.id,
                                 results = childSearchResults.value
                             )
@@ -153,14 +155,19 @@ class SearchRepository @Inject constructor(
         textForSearch: String,
         request: ChildSearchRequest
     ): ChildSearchResult {
+        val parseResult = Result.Success(
+            parser.parse(
+                originText = fetcher.fetch(request.url),
+                textForSearch = textForSearch
+            )
+        )
+        val childIds = mutex.withLock {
+            (parseResult as? Result.Success)?.result?.foundedUrls?.map { generateId() } ?: listOf()
+        }
         return ChildSearchResult(
             request = request,
-            parseResult = Result.Success(
-                parser.parse(
-                    originText = fetcher.fetch(request.url),
-                    textForSearch = textForSearch
-                )
-            )
+            parseResult = parseResult,
+            childIds = childIds
         )
     }
 
