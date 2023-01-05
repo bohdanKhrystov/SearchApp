@@ -32,7 +32,7 @@ class SearchRepository @Inject constructor(
     private val singleThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
     private val searchJobs = mutableListOf<Job>()
 
-    private val notifyRequestsUpdated: MutableSharedFlow<Unit> = MutableSharedFlow()
+    private val notifyRequestsUpdated: MutableSharedFlow<ChildSearchRequest> = MutableSharedFlow()
     private val queuedRequests: PriorityQueue<ChildSearchRequest> = PriorityQueue()
     private val completedRequests: MutableList<ChildSearchRequest> = mutableListOf()
     private val inProgressRequests: MutableList<ChildSearchRequest> = mutableListOf()
@@ -51,6 +51,12 @@ class SearchRepository @Inject constructor(
                     if (canAddJob) {
                         val request = mutex.withLock { queuedRequests.poll() }
                         if (request != null) {
+                            mutex.withLock {
+                                val inProgressRequest =
+                                    request.copy(status = ChildRequestStatus.InProgress)
+                                inProgressRequests.add(inProgressRequest)
+                                notifyRequestsUpdated.emit(inProgressRequest)
+                            }
                             searchJobs.add(scope.launch(Dispatchers.Default) {
                                 singleSearch(rootSearchRequest!!.textForSearch, request)
                             })
@@ -61,30 +67,43 @@ class SearchRepository @Inject constructor(
             }
         }
         notifyRequestsUpdated
-            .onEach {
-                val currentResult = _rootResult.value
-                if (currentResult != null) {
-                    var totalTextEntries = 0
-                    val processedUrls = mutableListOf<String>()
-                    val totalFoundedUrls = mutableListOf<String>()
-                    for (request in completedRequests) {
-                        val result =
-                            ((request.status as? ChildRequestStatus.Completed)?.result as? Result.Success)?.data
-                        processedUrls.add(request.url)
-                        totalTextEntries += result?.parseResult?.foundedTextEntries ?: 0
-                        totalFoundedUrls.addAll(result?.parseResult?.foundedUrls ?: listOf())
+            .onEach { childRequest ->
+                mutex.withLock {
+                    val currentResult = _rootResult.value
+                    if (currentResult != null) {
+                        var updatedStatus = currentResult.status
+                        var updatedTextEntries = currentResult.textEntries
+                        val updatedProcessedUrls =
+                            mutableListOf<String>().apply { addAll(currentResult.processedUrls) }
+                        val updatedFoundedUrls =
+                            mutableListOf<String>().apply { addAll(currentResult.foundedUrls) }
+
+                        val childRequestStatus = childRequest.status
+                        if (childRequestStatus is ChildRequestStatus.Completed) {
+                            updatedProcessedUrls.add(childRequest.url)
+                            updatedStatus =
+                                if (updatedProcessedUrls.containsAll(updatedFoundedUrls))
+                                    RootSearchStatus.Completed
+                                else
+                                    RootSearchStatus.InProgress
+                            val childSearchResult = childRequestStatus.result
+                            if (childSearchResult is Result.Success) {
+                                updatedTextEntries += childSearchResult.data.parseResult.foundedTextEntries
+                                updatedFoundedUrls.addAll(childSearchResult.data.parseResult.foundedUrls)
+                                updatedStatus =
+                                    if (updatedProcessedUrls.containsAll(updatedFoundedUrls))
+                                        RootSearchStatus.Completed
+                                    else
+                                        RootSearchStatus.InProgress
+                            }
+                        }
+                        _rootResult.value = currentResult.copy(
+                            textEntries = updatedTextEntries,
+                            foundedUrls = updatedFoundedUrls,
+                            processedUrls = updatedProcessedUrls,
+                            status = updatedStatus
+                        )
                     }
-                    val status =
-                        if (processedUrls.containsAll(totalFoundedUrls))
-                            RootSearchStatus.Completed
-                        else
-                            RootSearchStatus.InProgress
-                    _rootResult.value = currentResult.copy(
-                        textEntries = totalTextEntries,
-                        foundedUrls = totalFoundedUrls,
-                        processedUrls = processedUrls,
-                        status = status
-                    )
                 }
             }.launchIn(scope)
     }
@@ -124,8 +143,9 @@ class SearchRepository @Inject constructor(
             request.copy(status = ChildRequestStatus.Completed(Result.Failed(e)))
         }
         mutex.withLock {
+            inProgressRequests.removeAll { it.id == completedRequest.id }
             completedRequests.add(completedRequest)
-            notifyRequestsUpdated.emit(Unit)
+            notifyRequestsUpdated.emit(completedRequest)
         }
         val result = (completedRequest.status as? ChildRequestStatus.Completed)?.result
         if (result is Result.Success) {
@@ -134,20 +154,20 @@ class SearchRepository @Inject constructor(
             for ((index, url) in foundedUrls.withIndex()) {
                 mutex.withLock {
                     val id = result.data.childIds[index]
-                    queuedRequests.add(
-                        ChildSearchRequest(
-                            url = url,
+                    val queuedRequest = ChildSearchRequest(
+                        url = url,
+                        id = id,
+                        deep = nextDeep,
+                        parentId = request.id,
+                        priority = ChildSearchRequest.calculatePriority(
                             id = id,
-                            deep = nextDeep,
                             parentId = request.id,
-                            priority = ChildSearchRequest.calculatePriority(
-                                id = id,
-                                parentId = request.id,
-                                completedRequests = completedRequests
-                            ),
-                            status = ChildRequestStatus.Queued,
-                        )
+                            completedRequests = completedRequests
+                        ),
+                        status = ChildRequestStatus.Queued,
                     )
+                    queuedRequests.add(queuedRequest)
+                    notifyRequestsUpdated.emit(queuedRequest)
                 }
             }
         }
