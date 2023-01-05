@@ -1,6 +1,6 @@
 package com.bohdanhub.searchapp.di
 
-import com.bohdanhub.searchapp.domain.UrlFetcher
+import com.bohdanhub.searchapp.domain.data.fetch.UrlFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext

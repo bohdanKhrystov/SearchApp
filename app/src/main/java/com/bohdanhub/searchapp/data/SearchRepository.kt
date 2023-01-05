@@ -1,8 +1,13 @@
 package com.bohdanhub.searchapp.data
 
-import com.bohdanhub.searchapp.domain.Parser
-import com.bohdanhub.searchapp.domain.UrlFetcher
-import com.bohdanhub.searchapp.domain.data.*
+import com.bohdanhub.searchapp.domain.data.parse.Parser
+import com.bohdanhub.searchapp.domain.data.fetch.UrlFetcher
+import com.bohdanhub.searchapp.domain.data.child.ChildSearchRequest
+import com.bohdanhub.searchapp.domain.data.child.ChildSearchResult
+import com.bohdanhub.searchapp.domain.data.common.Result
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchResult
+import com.bohdanhub.searchapp.domain.data.root.RootSearchStatus
 import com.bohdanhub.searchapp.util.status
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow

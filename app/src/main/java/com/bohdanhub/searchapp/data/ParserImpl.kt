@@ -1,7 +1,7 @@
 package com.bohdanhub.searchapp.data
 
-import com.bohdanhub.searchapp.domain.Parser
-import com.bohdanhub.searchapp.domain.data.ParseResult
+import com.bohdanhub.searchapp.domain.data.parse.Parser
+import com.bohdanhub.searchapp.domain.data.parse.ParseResult
 import com.bohdanhub.searchapp.util.countEntries
 import com.bohdanhub.searchapp.util.extractUrls
 import kotlinx.coroutines.Dispatchers

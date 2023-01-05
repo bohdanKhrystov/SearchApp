@@ -1,6 +1,6 @@
 package com.bohdanhub.searchapp.data
 
-import com.bohdanhub.searchapp.domain.UrlFetcher
+import com.bohdanhub.searchapp.domain.data.fetch.UrlFetcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream

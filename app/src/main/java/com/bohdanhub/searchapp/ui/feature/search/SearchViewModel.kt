@@ -3,7 +3,7 @@ package com.bohdanhub.searchapp.ui.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bohdanhub.searchapp.data.SearchRepository
-import com.bohdanhub.searchapp.domain.data.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
 import com.bohdanhub.searchapp.ui.component.card.SearchCardData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow

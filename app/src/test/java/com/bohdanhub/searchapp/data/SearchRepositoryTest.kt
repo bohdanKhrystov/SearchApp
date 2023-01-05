@@ -4,8 +4,8 @@ import com.bohdanhub.searchapp.di.provideMockFetcher
 import com.bohdanhub.searchapp.di.provideMockFetcherThatFetchWithDelays
 import com.bohdanhub.searchapp.di.provideMockFetcherThatThrowErrorSomeTimes
 import com.bohdanhub.searchapp.di.rootTestUrl
-import com.bohdanhub.searchapp.domain.data.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.RootSearchStatus
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchStatus
 import com.bohdanhub.searchapp.util.deepEqualTo
 import kotlinx.coroutines.runBlocking
 import org.junit.Test

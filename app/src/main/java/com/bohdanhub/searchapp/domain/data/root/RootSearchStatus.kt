@@ -1,4 +1,4 @@
-package com.bohdanhub.searchapp.domain.data
+package com.bohdanhub.searchapp.domain.data.root
 
 sealed class RootSearchStatus {
     object Paused : RootSearchStatus() {

@@ -1,4 +1,4 @@
-package com.bohdanhub.searchapp.domain.data
+package com.bohdanhub.searchapp.domain.data.child
 
 data class ChildSearchRequest(
     val url: String,

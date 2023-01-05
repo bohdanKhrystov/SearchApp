@@ -1,7 +1,7 @@
 package com.bohdanhub.searchapp.ui.component.card
 
-import com.bohdanhub.searchapp.domain.data.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.RootSearchStatus
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchStatus
 
 data class SearchCardData(
     val request: RootSearchRequest,

@@ -12,8 +12,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bohdanhub.searchapp.domain.data.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.RootSearchStatus
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchStatus
 
 @Composable
 fun SearchCard(

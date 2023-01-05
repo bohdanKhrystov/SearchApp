@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bohdanhub.searchapp.data.SearchRepository
-import com.bohdanhub.searchapp.domain.data.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

@@ -11,7 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bohdanhub.searchapp.domain.data.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
 import com.bohdanhub.searchapp.ui.component.card.SearchCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
