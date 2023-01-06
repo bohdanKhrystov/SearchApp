@@ -68,7 +68,6 @@ class SearchRepository @Inject constructor(
         }
         notifyRequestsUpdated
             .onEach { childRequest ->
-                mutex.withLock {
                     val currentResult = _rootResult.value
                     if (currentResult != null) {
                         var updatedStatus = currentResult.status
@@ -81,30 +80,25 @@ class SearchRepository @Inject constructor(
                         val childRequestStatus = childRequest.status
                         if (childRequestStatus is ChildRequestStatus.Completed) {
                             updatedProcessedUrls.add(childRequest.url)
+                            val childSearchResult = childRequestStatus.result
+                            if (childSearchResult is Result.Success) {
+                                updatedTextEntries += childSearchResult.data.parseResult.foundedTextEntries
+                                updatedFoundedUrls.addAll(childSearchResult.data.parseResult.foundedUrls)
+                            }
                             updatedStatus =
                                 if (updatedProcessedUrls.containsAll(updatedFoundedUrls))
                                     RootSearchStatus.Completed
                                 else
                                     RootSearchStatus.InProgress
-                            val childSearchResult = childRequestStatus.result
-                            if (childSearchResult is Result.Success) {
-                                updatedTextEntries += childSearchResult.data.parseResult.foundedTextEntries
-                                updatedFoundedUrls.addAll(childSearchResult.data.parseResult.foundedUrls)
-                                updatedStatus =
-                                    if (updatedProcessedUrls.containsAll(updatedFoundedUrls))
-                                        RootSearchStatus.Completed
-                                    else
-                                        RootSearchStatus.InProgress
-                            }
                         }
                         _rootResult.value = currentResult.copy(
                             textEntries = updatedTextEntries,
                             foundedUrls = updatedFoundedUrls,
                             processedUrls = updatedProcessedUrls,
-                            status = updatedStatus
+                            status = updatedStatus,
                         )
                     }
-                }
+
             }.launchIn(scope)
     }
 
