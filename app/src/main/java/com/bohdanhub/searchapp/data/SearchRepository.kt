@@ -77,9 +77,10 @@ class SearchRepository @Inject constructor(
                     val updatedChildRequests =
                         currentResult.childRequests?.toMutableMap() ?: mutableMapOf()
 
-                    val childSearchRequests = updatedChildRequests[childRequest.parentId]
+                    val childSearchRequests =
+                        updatedChildRequests[childRequest.parentId] ?: listOf()
                     updatedChildRequests[childRequest.parentId] =
-                        (childSearchRequests?.toMutableList() ?: mutableListOf()).apply {
+                        childSearchRequests.toMutableList().apply {
                             val i = indexOf(find { it.id == childRequest.id })
                             if (i == -1) {
                                 add(childRequest)
