@@ -68,37 +68,48 @@ class SearchRepository @Inject constructor(
         }
         notifyRequestsUpdated
             .onEach { childRequest ->
-                    val currentResult = _rootResult.value
-                    if (currentResult != null) {
-                        var updatedStatus = currentResult.status
-                        var updatedTextEntries = currentResult.textEntries
-                        val updatedProcessedUrls =
-                            mutableListOf<String>().apply { addAll(currentResult.processedUrls) }
-                        val updatedFoundedUrls =
-                            mutableListOf<String>().apply { addAll(currentResult.foundedUrls) }
+                _rootResult.update { currentResult ->
+                    if (currentResult == null) return@update currentResult
+                    var updatedStatus = currentResult.status
+                    var updatedTextEntries = currentResult.textEntries
+                    val updatedProcessedUrls = currentResult.processedUrls.toMutableList()
+                    val updatedFoundedUrls = currentResult.foundedUrls.toMutableList()
+                    val updatedChildRequests =
+                        currentResult.childRequests?.toMutableMap() ?: mutableMapOf()
 
-                        val childRequestStatus = childRequest.status
-                        if (childRequestStatus is ChildRequestStatus.Completed) {
-                            updatedProcessedUrls.add(childRequest.url)
-                            val childSearchResult = childRequestStatus.result
-                            if (childSearchResult is Result.Success) {
-                                updatedTextEntries += childSearchResult.data.parseResult.foundedTextEntries
-                                updatedFoundedUrls.addAll(childSearchResult.data.parseResult.foundedUrls)
+                    val childSearchRequests = updatedChildRequests[childRequest.parentId]
+                    updatedChildRequests[childRequest.parentId] =
+                        (childSearchRequests?.toMutableList() ?: mutableListOf()).apply {
+                            val i = indexOf(find { it.id == childRequest.id })
+                            if (i == -1) {
+                                add(childRequest)
+                            } else {
+                                this[i] = childRequest
                             }
-                            updatedStatus =
-                                if (updatedProcessedUrls.containsAll(updatedFoundedUrls))
-                                    RootSearchStatus.Completed
-                                else
-                                    RootSearchStatus.InProgress
                         }
-                        _rootResult.value = currentResult.copy(
-                            textEntries = updatedTextEntries,
-                            foundedUrls = updatedFoundedUrls,
-                            processedUrls = updatedProcessedUrls,
-                            status = updatedStatus,
-                        )
-                    }
 
+                    val childRequestStatus = childRequest.status
+                    if (childRequestStatus is ChildRequestStatus.Completed) {
+                        updatedProcessedUrls.add(childRequest.url)
+                        val childSearchResult = childRequestStatus.result
+                        if (childSearchResult is Result.Success) {
+                            updatedTextEntries += childSearchResult.data.parseResult.foundedTextEntries
+                            updatedFoundedUrls.addAll(childSearchResult.data.parseResult.foundedUrls)
+                        }
+                        updatedStatus =
+                            if (updatedProcessedUrls.containsAll(updatedFoundedUrls))
+                                RootSearchStatus.Completed
+                            else
+                                RootSearchStatus.InProgress
+                    }
+                    currentResult.copy(
+                        textEntries = updatedTextEntries,
+                        foundedUrls = updatedFoundedUrls,
+                        processedUrls = updatedProcessedUrls,
+                        status = updatedStatus,
+                        childRequests = updatedChildRequests,
+                    )
+                }
             }.launchIn(scope)
     }
 

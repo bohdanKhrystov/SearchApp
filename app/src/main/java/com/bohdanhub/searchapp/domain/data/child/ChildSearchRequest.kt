@@ -32,7 +32,10 @@ data class ChildSearchRequest(
             var id: Long? = id
             while (parentId != null) {
                 val parent = completedRequests.find { it.id == parentId }
-                val childIndex = ((parent?.status as? ChildRequestStatus.Completed)?.result as? Result.Success)?.data?.childIds?.indexOf(id)
+                val childIndex =
+                    ((parent?.status as? ChildRequestStatus.Completed)?.result as? Result.Success)?.data?.childIds?.indexOf(
+                        id
+                    )
                 if (childIndex != null && childIndex >= 0) {
                     priority.add(childIndex)
                 }
@@ -41,6 +44,10 @@ data class ChildSearchRequest(
             }
             priority.add(0)
             return priority.reversed()
+        }
+
+        fun empty(): ChildSearchRequest {
+            return ChildSearchRequest("", -1L, -1L, -1, listOf(), ChildRequestStatus.New)
         }
     }
 }
