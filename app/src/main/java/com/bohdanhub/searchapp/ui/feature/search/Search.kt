@@ -11,7 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.SearchRequest
 import com.bohdanhub.searchapp.ui.component.card.SearchCard
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -109,7 +109,7 @@ fun BottomSheet(
         Spacer(modifier = Modifier.height(32.dp))
         Button(onClick = {
             vm.search(
-                RootSearchRequest(
+                SearchRequest(
                     textForSearch = searchText.text,
                     url = urlText.text
                 )

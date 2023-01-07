@@ -12,8 +12,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.root.RootSearchStatus
+import com.bohdanhub.searchapp.domain.data.root.SearchRequest
+import com.bohdanhub.searchapp.domain.data.root.SearchStatus
 
 @Composable
 fun SearchCard(
@@ -88,7 +88,7 @@ fun SearchCard(
                         .wrapContentHeight()
                         .padding(horizontal = 8.dp),
                 )
-                if (data.status != RootSearchStatus.Completed) {
+                if (data.status != SearchStatus.Completed) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Divider(color = MaterialTheme.colors.onBackground, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(12.dp))
@@ -103,8 +103,8 @@ fun SearchCard(
                         }) {
                             Text(
                                 text = when (data.status) {
-                                    is RootSearchStatus.InProgress -> "Pause"
-                                    RootSearchStatus.Paused -> "Resume"
+                                    is SearchStatus.InProgress -> "Pause"
+                                    SearchStatus.Paused -> "Resume"
                                     else -> throw java.lang.IllegalStateException()
                                 }
                             )
@@ -121,11 +121,11 @@ fun SearchCard(
 fun SearchCardPreview() {
     SearchCard(
         data = SearchCardData(
-            request = RootSearchRequest(
+            request = SearchRequest(
                 textForSearch = "brother",
                 url = "https://google.com"
             ),
-            status = RootSearchStatus.InProgress,
+            status = SearchStatus.InProgress,
             latestUrl = "https://latestprocessed.com",
             processedUrlsCount = 978,
             totalUrlsCount = 2196,

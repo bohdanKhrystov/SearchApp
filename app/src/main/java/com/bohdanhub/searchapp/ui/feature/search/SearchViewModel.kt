@@ -3,7 +3,7 @@ package com.bohdanhub.searchapp.ui.feature.search
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bohdanhub.searchapp.data.SearchRepository
-import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
+import com.bohdanhub.searchapp.domain.data.root.SearchRequest
 import com.bohdanhub.searchapp.ui.component.card.SearchCardData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
@@ -17,7 +17,7 @@ class SearchViewModel @Inject constructor(
     private val searchRepository: SearchRepository,
 ) : ViewModel() {
 
-    val searchCardData: Flow<SearchCardData?> = searchRepository.rootResult
+    val searchCardData: Flow<SearchCardData?> = searchRepository.searchResult
         .filterNotNull()
         .map { searchResult ->
             SearchCardData(
@@ -31,7 +31,7 @@ class SearchViewModel @Inject constructor(
             )
         }
 
-    fun search(request: RootSearchRequest) {
+    fun search(request: SearchRequest) {
         viewModelScope.launch {
             searchRepository.startSearch(request)
         }

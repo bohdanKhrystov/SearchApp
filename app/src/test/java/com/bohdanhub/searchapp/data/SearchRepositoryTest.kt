@@ -4,8 +4,8 @@ import com.bohdanhub.searchapp.di.provideMockFetcher
 import com.bohdanhub.searchapp.di.provideMockFetcherThatFetchWithDelays
 import com.bohdanhub.searchapp.di.provideMockFetcherThatThrowErrorSomeTimes
 import com.bohdanhub.searchapp.di.rootTestUrl
-import com.bohdanhub.searchapp.domain.data.root.RootSearchRequest
-import com.bohdanhub.searchapp.domain.data.root.RootSearchStatus
+import com.bohdanhub.searchapp.domain.data.root.SearchRequest
+import com.bohdanhub.searchapp.domain.data.root.SearchStatus
 import com.bohdanhub.searchapp.util.deepEqualTo
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
@@ -20,18 +20,18 @@ internal class SearchRepositoryTest {
         val repository = SearchRepository(parser, fetcher)
         runBlocking {
             repository.startSearch(
-                RootSearchRequest(
+                SearchRequest(
                     textForSearch = "1",
                     url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.searchResult.value?.status != SearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
             }
-            val foundedUrls = repository.rootResult.value!!.foundedUrls
+            val foundedUrls = repository.searchResult.value!!.foundedUrls
             assert(foundedUrls.deepEqualTo(expectedFoundedUrls)) {
                 "Search is not in width, founded urls:\n$foundedUrls\n do not match expected:\n$expectedFoundedUrls\n"
             }
@@ -46,18 +46,18 @@ internal class SearchRepositoryTest {
         val repository = SearchRepository(parser, fetcher)
         runBlocking {
             repository.startSearch(
-                RootSearchRequest(
+                SearchRequest(
                     textForSearch = "1",
                     url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.searchResult.value?.status != SearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
             }
-            val foundedUrls = repository.rootResult.value!!.foundedUrls
+            val foundedUrls = repository.searchResult.value!!.foundedUrls
             val indexes = foundedUrls.map {
                 URL(it).host.split(".").first().toInt()
             }
@@ -96,13 +96,13 @@ internal class SearchRepositoryTest {
         val repository = SearchRepository(parser, fetcher)
         runBlocking {
             repository.startSearch(
-                RootSearchRequest(
+                SearchRequest(
                     textForSearch = "1",
                     url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.searchResult.value?.status != SearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }
@@ -117,13 +117,13 @@ internal class SearchRepositoryTest {
         val repository = SearchRepository(parser, fetcher)
         runBlocking {
             repository.startSearch(
-                RootSearchRequest(
+                SearchRequest(
                     textForSearch = "1",
                     url = rootTestUrl,
                 )
             )
             val timeStart = System.currentTimeMillis()
-            while (repository.rootResult.value?.status != RootSearchStatus.Completed) {
+            while (repository.searchResult.value?.status != SearchStatus.Completed) {
                 if (System.currentTimeMillis() - timeStart > 100_000) {
                     assert(false) { "Test timeout" }
                 }

@@ -1,19 +1,19 @@
 package com.bohdanhub.searchapp.domain.data.root
 
-sealed class RootSearchStatus {
-    object Paused : RootSearchStatus() {
+sealed class SearchStatus {
+    object Paused : SearchStatus() {
         override fun toString(): String {
             return "Paused"
         }
     }
 
-    object Completed : RootSearchStatus() {
+    object Completed : SearchStatus() {
         override fun toString(): String {
             return "Completed"
         }
     }
 
-    object InProgress : RootSearchStatus() {
+    object InProgress : SearchStatus() {
         override fun toString(): String {
             return "InProgress"
         }

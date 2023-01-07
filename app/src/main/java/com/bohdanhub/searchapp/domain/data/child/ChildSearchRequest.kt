@@ -1,6 +1,9 @@
 package com.bohdanhub.searchapp.domain.data.child
 
+import com.bohdanhub.searchapp.domain.data.common.ConcurrentHashMap
 import com.bohdanhub.searchapp.domain.data.common.Result
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 data class ChildSearchRequest(
     val url: String,
@@ -21,8 +24,50 @@ data class ChildSearchRequest(
         return 0
     }
 
-    companion object {
-        fun calculatePriority(
+    class Factory(
+        private val requestsByParentId: ConcurrentHashMap<Long, List<ChildSearchRequest>>,
+    ) {
+        private val mutex = Mutex()
+        private var requestId = 0L
+
+        fun createRootRequest(url: String): ChildSearchRequest {
+            return ChildSearchRequest(
+                url = url,
+                parentId = -1,
+                id = 0,
+                deep = 0,
+                priority = listOf(0),
+                status = ChildRequestStatus.Queued
+            )
+        }
+
+        suspend fun createRequests(
+            parent: ChildSearchRequest?
+        ): List<ChildSearchRequest> {
+            val result = (parent?.status as? ChildRequestStatus.Completed)?.result
+            if (result !is Result.Success) return listOf()
+            val foundedUrls = result.data.parseResult.foundedUrls
+            val nextDeep = parent.deep + 1
+            return foundedUrls.mapIndexed { index, url ->
+                val id = result.data.childIds[index]
+                ChildSearchRequest(
+                    url = url,
+                    id = id,
+                    deep = nextDeep,
+                    parentId = parent.id,
+                    priority = calculatePriority(
+                        id = id,
+                        parentId = parent.id,
+                        completedRequests = requestsByParentId.values()
+                            .flatten()
+                            .filter { it.status is ChildRequestStatus.Completed }
+                    ),
+                    status = ChildRequestStatus.Queued,
+                )
+            }
+        }
+
+        private fun calculatePriority(
             id: Long,
             parentId: Long,
             completedRequests: List<ChildSearchRequest>
@@ -46,8 +91,13 @@ data class ChildSearchRequest(
             return priority.reversed()
         }
 
-        fun empty(): ChildSearchRequest {
-            return ChildSearchRequest("", -1L, -1L, -1, listOf(), ChildRequestStatus.New)
+        suspend fun generateId(): Long = mutex.withLock {
+            requestId += 1
+            return requestId
+        }
+
+        suspend fun toDefault() = mutex.withLock {
+            requestId = 0
         }
     }
 }
