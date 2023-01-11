@@ -30,7 +30,7 @@ class SearchRepository @Inject constructor(
     private val singleThreadDispatcher = Executors.newFixedThreadPool(1).asCoroutineDispatcher()
     private val searchJobs = mutableListOf<Job>()
 
-    private val queuedRequests = ConcurrentPriorityQueue<ChildSearchRequest>()
+    private val requestsQueue = ConcurrentPriorityQueue<ChildSearchRequest>()
     private val requestsByParentId = ConcurrentHashMap<Long, List<ChildSearchRequest>>()
     private val requestFactory = ChildSearchRequest.Factory(requestsByParentId)
 
@@ -47,7 +47,7 @@ class SearchRepository @Inject constructor(
                     }
                     val canAddJob = searchJobs.size < MAX_SEARCH_JOBS_COUNT
                     if (canAddJob) {
-                        val request = queuedRequests.poll()
+                        val request = requestsQueue.poll()
                         if (request != null) {
                             updateRequests(request.copy(status = ChildRequestStatus.InProgress))
                             searchJobs.add(scope.launch(Dispatchers.Default) {
@@ -95,8 +95,8 @@ class SearchRepository @Inject constructor(
 
     suspend fun startSearch(request: SearchRequest) {
         this.rootSearchRequest = request
-        requestFactory.toDefault()
-        queuedRequests.clear()
+        ChildSearchResult.Factory.toDefault()
+        requestsQueue.clear()
         requestsByParentId.clear()
         _searchResult.value = SearchResult(
             request = request,
@@ -105,7 +105,7 @@ class SearchRepository @Inject constructor(
             processedUrls = listOf(),
             status = SearchStatus.InProgress
         )
-        queuedRequests.add(requestFactory.createRootRequest(request.url))
+        requestsQueue.add(requestFactory.createRootRequest(request.url))
     }
 
     private suspend fun singleSearch(textForSearch: String, request: ChildSearchRequest) {
@@ -117,7 +117,7 @@ class SearchRepository @Inject constructor(
         }
         updateRequests(completedRequest)
         for (childRequest in requestFactory.createRequests(completedRequest)) {
-            queuedRequests.add(childRequest)
+            requestsQueue.add(childRequest)
             updateRequests(childRequest)
         }
     }
@@ -126,14 +126,11 @@ class SearchRepository @Inject constructor(
         textForSearch: String,
         request: ChildSearchRequest
     ): ChildSearchResult {
-        val parseResult = parser.parse(
-            originText = fetcher.fetch(request.url),
-            textForSearch = textForSearch
-        )
-        val childIds = parseResult.foundedUrls.map { requestFactory.generateId() }
-        return ChildSearchResult(
-            parseResult = parseResult,
-            childIds = childIds
+        return ChildSearchResult.Factory.createResult(
+            parser.parse(
+                originText = fetcher.fetch(request.url),
+                textForSearch = textForSearch
+            )
         )
     }
 

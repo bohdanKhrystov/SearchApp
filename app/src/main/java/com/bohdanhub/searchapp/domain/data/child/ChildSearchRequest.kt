@@ -27,8 +27,6 @@ data class ChildSearchRequest(
     class Factory(
         private val requestsByParentId: ConcurrentHashMap<Long, List<ChildSearchRequest>>,
     ) {
-        private val mutex = Mutex()
-        private var requestId = 0L
 
         fun createRootRequest(url: String): ChildSearchRequest {
             return ChildSearchRequest(
@@ -89,15 +87,6 @@ data class ChildSearchRequest(
             }
             priority.add(0)
             return priority.reversed()
-        }
-
-        suspend fun generateId(): Long = mutex.withLock {
-            requestId += 1
-            return requestId
-        }
-
-        suspend fun toDefault() = mutex.withLock {
-            requestId = 0
         }
     }
 }
