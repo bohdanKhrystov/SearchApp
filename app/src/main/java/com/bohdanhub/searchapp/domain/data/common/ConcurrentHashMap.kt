@@ -10,6 +10,10 @@ class ConcurrentHashMap<K, V> {
 
     suspend fun toMap(): Map<K, V> = mutex.withLock { map.toMap() }
 
+    suspend fun <T> with(block: suspend (Map<K, V>) -> T) = mutex.withLock {
+        return@withLock block.invoke(map)
+    }
+
     suspend fun entries(): Set<Map.Entry<K, V>> = mutex.withLock {
         map.entries
     }

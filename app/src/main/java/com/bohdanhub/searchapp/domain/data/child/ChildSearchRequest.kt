@@ -56,9 +56,11 @@ data class ChildSearchRequest(
                     priority = calculatePriority(
                         id = id,
                         parentId = parent.id,
-                        completedRequests = requestsByParentId.values()
-                            .flatten()
-                            .filter { it.status is ChildRequestStatus.Completed }
+                        completedRequests = requestsByParentId.with { map ->
+                            map.values
+                                .flatten()
+                                .filter { it.status is ChildRequestStatus.Completed }
+                        }
                     ),
                     status = ChildRequestStatus.Queued,
                 )
