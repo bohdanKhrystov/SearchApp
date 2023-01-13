@@ -12,12 +12,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.bohdanhub.searchapp.domain.data.root.SearchRequest
 import com.bohdanhub.searchapp.domain.data.root.SearchStatus
+import com.bohdanhub.searchapp.ui.feature.main.MainScreens
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun SearchCard(
     data: SearchCardData,
+    mainNavController: NavHostController? = null,
     modifier: Modifier = Modifier
         .fillMaxWidth()
         .wrapContentHeight()
@@ -30,6 +34,9 @@ fun SearchCard(
         Card(
             elevation = 4.dp,
             shape = RoundedCornerShape(20.dp),
+            onClick = {
+                mainNavController?.navigate(MainScreens.SearchDetails.route)
+            }
         ) {
             Column(
                 horizontalAlignment = Alignment.Start,

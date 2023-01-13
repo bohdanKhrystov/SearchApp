@@ -14,13 +14,16 @@ import com.bohdanhub.searchapp.ui.feature.history.HistoryScreen
 import com.bohdanhub.searchapp.ui.feature.search.SearchScreen
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(mainNavController: NavHostController) {
     val navController: NavHostController = rememberNavController()
     Scaffold(
         bottomBar = { BottomNavigationBar(navController) },
         content = {
             Box {
-                HomeNavigation(navController = navController)
+                HomeNavigation(
+                    mainNavController = mainNavController,
+                    navController = navController
+                )
             }
         },
         backgroundColor = MaterialTheme.colors.background
@@ -28,10 +31,10 @@ fun HomeScreen() {
 }
 
 @Composable
-fun HomeNavigation(navController: NavHostController) {
+fun HomeNavigation(mainNavController: NavHostController, navController: NavHostController) {
     NavHost(navController, startDestination = BottomNavigationItem.Search.route) {
         composable(BottomNavigationItem.Search.route) {
-            SearchScreen()
+            SearchScreen(mainNavController)
         }
         composable(BottomNavigationItem.History.route) {
             HistoryScreen()

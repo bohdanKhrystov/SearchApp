@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import com.bohdanhub.searchapp.domain.data.root.SearchRequest
 import com.bohdanhub.searchapp.ui.component.card.SearchCard
 import kotlinx.coroutines.CoroutineScope
@@ -18,10 +19,16 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun SearchScreen(vm: SearchViewModel = hiltViewModel()) {
+fun SearchScreen(
+    mainNavController: NavHostController,
+    vm: SearchViewModel = hiltViewModel(),
+) {
     val searchCardState = vm.searchCardData.collectAsState(initial = null)
     searchCardState.value?.let { searchCardData ->
-        SearchCard(searchCardData)
+        SearchCard(
+            mainNavController = mainNavController,
+            data = searchCardData
+        )
     }
 
     val sheetState: ModalBottomSheetState = rememberModalBottomSheetState(

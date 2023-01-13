@@ -16,7 +16,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.bohdanhub.searchapp.ui.component.topappbar.TopAppBar
+import com.bohdanhub.searchapp.ui.feature.details.DetailsScreen
 import com.bohdanhub.searchapp.ui.feature.home.HomeScreen
+import com.bohdanhub.searchapp.ui.feature.search.SearchScreen
 import com.bohdanhub.searchapp.ui.feature.settings.SettingsScreen
 import com.bohdanhub.searchapp.ui.theme.SearchAppTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,10 +53,13 @@ fun MainScreen(vm: MainViewModel = hiltViewModel()) {
 fun MainNavigation(navController: NavHostController) {
     NavHost(navController, startDestination = MainScreens.Home.route) {
         composable(MainScreens.Home.route) {
-            HomeScreen()
+            HomeScreen(navController)
         }
         composable(MainScreens.Settings.route) {
             SettingsScreen()
+        }
+        composable(MainScreens.SearchDetails.route) {
+            DetailsScreen()
         }
     }
 }
@@ -62,6 +67,7 @@ fun MainNavigation(navController: NavHostController) {
 sealed class MainScreens(val route: String) {
     object Home : MainScreens("home")
     object Settings : MainScreens("settings")
+    object SearchDetails : MainScreens("details")
 }
 
 @Preview(showBackground = true)
