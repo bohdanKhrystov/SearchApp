@@ -25,67 +25,24 @@ fun DetailsScreen(vm: DetailsViewModel = hiltViewModel()) {
     val searchState = vm.searchResult.collectAsState(initial = null)
     searchState.value?.let { searchResult ->
         searchResult.requestsByParentId?.get(-1L)?.first()?.let { request ->
-            View(result = searchResult, nodes = listOf(request))
-        }
-    }
-}
-
-@Composable
-fun DetailsCard(
-    result: SearchResult,
-    request: ChildSearchRequest,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight()
-            .padding(20.dp)
-    ) {
-        Text(
-            text = "Url: ${request.url}",
-            modifier = Modifier.padding(horizontal = 8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = "Status: ${request.status}",
-            modifier = Modifier.padding(horizontal = 8.dp),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        if (request.status is ChildRequestStatus.Completed) {
-            if (request.status.result is Result.Success) {
-                LazyColumn {
-                    items(result.requestsByParentId?.get(request.id) ?: listOf()) {
-                        DetailsCard(result = result, request = it)
-                    }
-                }
+            val expandedItems = remember { mutableStateListOf<ChildSearchRequest>() }
+            LazyColumn {
+                nodes(
+                    listOf(request),
+                    isExpanded = {
+                        expandedItems.contains(it)
+                    },
+                    toggleExpanded = {
+                        if (expandedItems.contains(it)) {
+                            expandedItems.remove(it)
+                        } else {
+                            expandedItems.add(it)
+                        }
+                    },
+                    result = searchResult
+                )
             }
         }
-    }
-}
-
-@Composable
-fun View(
-    nodes: List<ChildSearchRequest>,
-    result: SearchResult,
-) {
-    val expandedItems = remember { mutableStateListOf<ChildSearchRequest>() }
-    LazyColumn {
-        nodes(
-            nodes,
-            isExpanded = {
-                expandedItems.contains(it)
-            },
-            toggleExpanded = {
-                if (expandedItems.contains(it)) {
-                    expandedItems.remove(it)
-                } else {
-                    expandedItems.add(it)
-                }
-            },
-            result = result
-        )
     }
 }
 
@@ -111,7 +68,7 @@ fun LazyListScope.node(
     toggleExpanded: (ChildSearchRequest) -> Unit,
     result: SearchResult
 ) {
-    item {
+    item(key = node.id) {
         Column {
             Text(
                 text = "Url: ${node.url}",
