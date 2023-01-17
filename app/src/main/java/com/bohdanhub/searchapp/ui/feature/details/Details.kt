@@ -1,11 +1,11 @@
 package com.bohdanhub.searchapp.ui.feature.details
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,17 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bohdanhub.searchapp.domain.data.child.ChildRequestStatus
 import com.bohdanhub.searchapp.domain.data.child.ChildSearchRequest
-import com.bohdanhub.searchapp.domain.data.common.Result
 import com.bohdanhub.searchapp.domain.data.root.SearchResult
 
 @Composable
 fun DetailsScreen(vm: DetailsViewModel = hiltViewModel()) {
     val searchState = vm.searchResult.collectAsState(initial = null)
+    val expandedItems = remember { mutableStateListOf<ChildSearchRequest>() }
     searchState.value?.let { searchResult ->
         searchResult.requestsByParentId?.get(-1L)?.first()?.let { request ->
-            val expandedItems = remember { mutableStateListOf<ChildSearchRequest>() }
             LazyColumn {
                 nodes(
                     listOf(request),
@@ -87,7 +85,7 @@ fun LazyListScope.node(
                 overflow = TextOverflow.Ellipsis
             )
             Row {
-                for (i in 0..node.deep){
+                for (i in 0..node.deep) {
                     Text("|")
                 }
             }

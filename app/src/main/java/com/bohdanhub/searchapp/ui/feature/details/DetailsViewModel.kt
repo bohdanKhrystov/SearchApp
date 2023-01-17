@@ -15,6 +15,6 @@ class DetailsViewModel @Inject constructor(
     private val notNullResults = searchRepository.searchResult.filterNotNull()
     val searchResult: Flow<SearchResult> = merge(
         notNullResults.take(1),
-        notNullResults.drop(1).debounce(3_000),
+        notNullResults.drop(1).sample(1_000),
     )
 }
