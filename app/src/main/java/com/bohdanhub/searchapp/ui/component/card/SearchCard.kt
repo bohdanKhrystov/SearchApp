@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.bohdanhub.searchapp.domain.data.root.SearchRequest
 import com.bohdanhub.searchapp.domain.data.root.SearchStatus
+import com.bohdanhub.searchapp.ui.feature.details.recomposeHighlighter
 import com.bohdanhub.searchapp.ui.feature.main.MainScreens
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -26,6 +27,7 @@ fun SearchCard(
         .fillMaxWidth()
         .wrapContentHeight()
         .padding(20.dp)
+        .recomposeHighlighter()
 ) {
     Column(
         modifier = modifier
