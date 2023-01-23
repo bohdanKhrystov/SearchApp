@@ -1,7 +1,10 @@
 package com.bohdanhub.searchapp.data
 
+import android.util.Log
 import com.bohdanhub.searchapp.domain.data.fetch.UrlFetcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.BufferedInputStream
 import java.io.BufferedReader
@@ -13,12 +16,18 @@ import java.net.URL
 import javax.inject.Inject
 import javax.inject.Singleton
 
+
 @Singleton
 class UrlFetcherImpl @Inject constructor() : UrlFetcher {
 
+    private val mResult = mutableListOf<String>()
+    private val m = Mutex()
+
     override suspend fun fetch(url: String): String = withContext(Dispatchers.IO) {
         var urlConnection: HttpURLConnection? = null
-        var result = ""
+        //var result = ""
+        m.withLock { if (mResult.size > 10) mResult.clear() }
+        m.withLock { mResult.add("") }
         try {
             val urlObj = URL(url)
             urlConnection = urlObj.openConnection() as HttpURLConnection
@@ -33,11 +42,12 @@ class UrlFetcherImpl @Inject constructor() : UrlFetcher {
                         line
                     } != null) {
                     //Log.d("SearchRepository", "line = $line")
-                    result += line
+                    m.withLock { mResult[mResult.size - 1] = mResult[mResult.size - 1] + line }
                 }
+                //Log.d("PerformanceDebug","url content = ${result.length}")
                 stream.close()
             }
-            return@withContext result
+            return@withContext m.withLock { mResult[mResult.size - 1] }
         } catch (e: MalformedURLException) {
             e.printStackTrace()
         } catch (e: IOException) {
@@ -47,7 +57,7 @@ class UrlFetcherImpl @Inject constructor() : UrlFetcher {
         } finally {
             urlConnection?.disconnect()
         }
-        return@withContext result
+        return@withContext m.withLock { mResult[mResult.size - 1] }
     }
 
 //    override suspend fun fetch(url: String): String = withContext(Dispatchers.IO) {
